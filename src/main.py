@@ -5,13 +5,14 @@ import json
 from datetime import datetime
 from src.constants.item_rarity import item_rarity
 
-MINIMUM_RARITY: int = 2 # Rare or higher
-SUPPORTED_STOCK_KEYS = ['seed_stock', 'gear_stock', 'egg_stock']
-SKIPPED_ITEMS = [
-    'harvest_tool',
-    'favorite_tool',
-    'cleaning_spray',
-]
+class Config:
+    MINIMUM_RARITY: int = 2 # Rare or higher
+    SUPPORTED_STOCK_KEYS = ['seed_stock', 'gear_stock', 'egg_stock']
+    SKIPPED_ITEMS = [
+        'harvest_tool',
+        'favorite_tool',
+        'cleaning_spray',
+    ]
 
 def get_remaining_time() -> int:
     # TODO use response end time to calculate the remaining time
@@ -31,14 +32,14 @@ def fetch_data() -> dict:
 def extract_data(data: dict) -> dict:
     del data['discord_invite'] # Remove empty value key existing in the response
     # Extract data for only those keys
-    data = {key: data[key] for key in SUPPORTED_STOCK_KEYS if key in data}
+    data = {key: data[key] for key in Config.SUPPORTED_STOCK_KEYS if key in data}
     return data
 
 def display_data(data) -> None:
     for key in data.keys():
         for fruit in data[key]:
             item = item_rarity.get(fruit['item_id'])
-            if item and item['ranking'] > MINIMUM_RARITY and fruit['item_id'] not in SKIPPED_ITEMS:
+            if item and item['ranking'] > Config.MINIMUM_RARITY and fruit['item_id'] not in Config.SKIPPED_ITEMS:
                 print(fruit['display_name'], " - ", item['rarity'])
 
 def main() -> None:
