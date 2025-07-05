@@ -18,22 +18,31 @@ def get_remaining_time() -> int:
     delay = (((minutes // 5 + 1) * 5 - minutes) - 1) * 60 + (60 - datetime.now().second) # Calculate remaining time until next 5-minute interval
     return delay
 
-def display_data() -> None:
+def fetch_data() -> dict:
     result = requests.get('https://api.joshlei.com/v2/growagarden/stock')
-    result_set: dict = json.loads(result.text)
-    del result_set['discord_invite']
+    if result.status_code == 200:
+        result = json.loads(result.text)
+        del result['discord_invite']
+        return result
+    else:
+        raise Exception(f"Failed to fetch data: {result.status_code}")
 
-    for key in result_set.keys():
-        for fruit in result_set[str(key)]:
+def display_data(data) -> None:
+    for key in data.keys():
+        for fruit in data[key]:
             item = item_rarity.get(fruit['item_id'])
-            if item and item.get('ranking') > MINIMUM_RARITY and fruit['item_id'] not in skipped_items:
-                print(fruit['display_name'], " - ", item.get('rarity'))
+            if item and item['ranking'] > MINIMUM_RARITY and fruit['item_id'] not in skipped_items:
+                print(fruit['display_name'], " - ", item['rarity'])
 
 def main() -> None:
     while True:
         os.system('cls' if os.name == 'nt' else 'clear')
         print(f"Remaining time until next update: {get_remaining_time()} seconds")
-        display_data()
+        try:
+            data = fetch_data()
+            display_data(data)
+        except Exception as e:
+            print(f"Error fetching data: {e}")
         time.sleep(get_remaining_time())
 
 if __name__ == "__main__":
