@@ -6,10 +6,6 @@ from datetime import datetime
 from info.item_rarity import item_rarity
 
 MINIMUM_RARITY: int = 3 # Legendary or higher
-current_datetime = datetime.now()
-result = requests.get('https://api.joshlei.com/v2/growagarden/stock')
-result_set: dict = json.loads(result.text)
-del result_set['discord_invite']
 
 skipped_items = [
     'harvest_tool',
@@ -19,10 +15,14 @@ skipped_items = [
 
 def get_remaining_time() -> int:
     minutes = datetime.now().minute
-    delay = (minutes // 5 + 1) * 5 - minutes
-    return delay * 60
+    delay = (((minutes // 5 + 1) * 5 - minutes) - 1) * 60 + (60 - datetime.now().second) # Calculate remaining time until next 5-minute interval
+    return delay
 
 def display_data() -> None:
+    result = requests.get('https://api.joshlei.com/v2/growagarden/stock')
+    result_set: dict = json.loads(result.text)
+    del result_set['discord_invite']
+
     for key in result_set.keys():
         for fruit in result_set[str(key)]:
             item = item_rarity.get(fruit['item_id'])
